@@ -37,6 +37,9 @@ uv.lock
 # Environment
 .env
 
+# Output
+output/
+
 # OS
 .DS_Store
 Thumbs.db
