@@ -51,3 +51,7 @@ Thumbs.db
 
 #Marketing
 marketing/
+
+# Test results and reports
+**/test-results/
+**/playwright-report/

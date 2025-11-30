@@ -6,6 +6,9 @@ requires-python = ">=3.10"
 dependencies = [
     "torchao==0.10.0",
     "safetensors",
+    # Note: diffusers and easy_dwpose are git dependencies - see requirements.txt for exact versions
+    # diffusers@git+https://github.com/huggingface/diffusers@6bf668c4d217ebc96065e673d8a257fd79950d34
+    # easy_dwpose@git+https://github.com/jaretburkett/easy_dwpose.git
     "transformers==4.57.3",
     "lycoris-lora==1.8.3",
     "flatten_json",
@@ -42,6 +45,8 @@ dependencies = [
     "matplotlib==3.10.1",
     "setuptools==69.5.1",
 ]
+# Note: For complete installation including git dependencies, use: pip install -r requirements.txt
+# PyTorch (torch, torchvision, torchaudio) should be installed separately with CUDA support
 
 [project.optional-dependencies]
 dev = [

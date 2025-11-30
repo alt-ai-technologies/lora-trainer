@@ -2,7 +2,7 @@
 job: extension
 config:
   # this name will be the folder and filename name
-  name: "my_first_zimage_turbo_lora_v1"
+  name: "test_zimage_turbo_lora_v1"
   process:
     - type: 'sd_trainer'
       # root folder to save training sessions/samples/weights

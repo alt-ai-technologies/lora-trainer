@@ -33,7 +33,9 @@ uv venv
 source venv/bin/activate
 ```
 
-#### 3. Install PyTorch (Required First)
+#### 3. Install PyTorch (Required First - ALL THREE PACKAGES)
+
+**IMPORTANT:** You must install `torch`, `torchvision`, AND `torchaudio`. Missing `torchaudio` will cause import errors.
 
 **For CUDA 12.6:**
 ```bash
@@ -62,6 +64,11 @@ pip install -r requirements.txt
 uv pip install -r requirements.txt
 ```
 
+**Note:** The `requirements.txt` file includes all dependencies, including:
+- Git dependencies: `diffusers` (from specific commit) and `easy_dwpose`
+- All Python packages with their required versions
+- **IMPORTANT:** PyTorch packages (torch, torchvision, torchaudio) are NOT included and MUST be installed separately with matching CUDA versions (see step 3). Missing `torchaudio` will cause import errors.
+
 ## Verification
 
 After installation, verify everything works:
@@ -82,25 +89,54 @@ python3 test_zimage_turbo.py
 If you get `ModuleNotFoundError: No module named 'torchaudio'`, install it explicitly:
 
 ```bash
-pip install torchaudio --index-url https://download.pytorch.org/whl/cu126
+# For CUDA 12.6
+pip install torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+
+# Or install all PyTorch packages together (recommended)
+pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
 ```
+
+**Note:** `torchaudio` is required by `toolkit/config_modules.py` and must be installed for the toolkit to work.
 
 ### diffusers not found
 
-The diffusers package is installed from a git repository. If it fails, try:
+The diffusers package is installed from a git repository (included in `requirements.txt`). If installation fails, try:
 
 ```bash
 pip install git+https://github.com/huggingface/diffusers@6bf668c4d217ebc96065e673d8a257fd79950d34
 ```
 
-### CUDA version mismatch
+### easy_dwpose not found
 
-Check your CUDA version:
+The easy_dwpose package is installed from a git repository (included in `requirements.txt`). If installation fails, try:
+
 ```bash
-nvcc --version
+pip install git+https://github.com/jaretburkett/easy_dwpose.git
 ```
 
-Then install the matching PyTorch version as shown in step 3.
+### CUDA version mismatch
+
+If you get errors about CUDA version mismatches between PyTorch packages:
+
+1. **Check your installed PyTorch CUDA version:**
+   ```bash
+   python -c "import torch; print('PyTorch CUDA:', torch.version.cuda)"
+   ```
+
+2. **Install matching versions:**
+   - If PyTorch has CUDA 12.8, install torchaudio/torchvision with CUDA 12.8:
+     ```bash
+     pip install torchaudio torchvision --index-url https://download.pytorch.org/whl/cu128
+     ```
+   - If PyTorch has CUDA 12.6, install with CUDA 12.6:
+     ```bash
+     pip install torchaudio torchvision --index-url https://download.pytorch.org/whl/cu126
+     ```
+
+3. **Best practice:** Install all PyTorch packages together to ensure matching versions:
+   ```bash
+   pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+   ```
 
 ## Using uv
 

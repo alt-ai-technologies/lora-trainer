@@ -176,10 +176,13 @@ git clone https://github.com/ostris/ai-toolkit.git
 cd ai-toolkit
 python3 -m venv venv
 source venv/bin/activate
-# install torch first
+# install torch first (required for CUDA support)
 pip3 install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+# install all dependencies including git dependencies (diffusers, easy_dwpose)
 pip3 install -r requirements.txt
 ```
+
+**Note:** The `requirements.txt` includes all dependencies including git-based packages (`diffusers` and `easy_dwpose`). PyTorch will also be installed as a dependency, but installing it separately first ensures proper CUDA support.
 
 Windows:
 
@@ -190,9 +193,13 @@ git clone https://github.com/ostris/ai-toolkit.git
 cd ai-toolkit
 python -m venv venv
 .\venv\Scripts\activate
+# install torch first (required for CUDA support)
 pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+# install all dependencies including git dependencies (diffusers, easy_dwpose)
 pip install -r requirements.txt
 ```
+
+**Note:** The `requirements.txt` includes all dependencies including git-based packages (`diffusers` and `easy_dwpose`). PyTorch will also be installed as a dependency, but installing it separately first ensures proper CUDA support.
 
 
 # AI Toolkit UI
@@ -332,9 +339,12 @@ cd ai-toolkit
 git submodule update --init --recursive
 python -m venv venv
 source venv/bin/activate
-pip install torch
+# Install PyTorch with CUDA support first
+pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+# Install all dependencies (includes git dependencies: diffusers, easy_dwpose)
 pip install -r requirements.txt
-pip install --upgrade accelerate transformers diffusers huggingface_hub #Optional, run it if you run into issues
+# Optional: upgrade specific packages if you run into issues
+pip install --upgrade accelerate transformers diffusers huggingface_hub
 ```
 #### Modal:
 - Run `pip install modal` to install the modal Python package.

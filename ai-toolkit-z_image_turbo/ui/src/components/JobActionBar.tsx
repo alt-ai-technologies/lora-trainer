@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { Eye, Trash2, Pen, Play, Pause, Cog, X } from 'lucide-react';
+import { Eye, Trash2, Pen, Play, Pause, Cog, X, Cloud } from 'lucide-react';
 import { Button } from '@headlessui/react';
 import { openConfirm } from '@/components/ConfirmModal';
 import { Job } from '@prisma/client';
-import { startJob, stopJob, deleteJob, getAvaliableJobActions, markJobAsStopped } from '@/utils/jobs';
+import { startJob, stopJob, deleteJob, getAvaliableJobActions, markJobAsStopped, deployToModal } from '@/utils/jobs';
 import { startQueue } from '@/utils/queue';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { redirect } from 'next/navigation';
@@ -146,6 +146,82 @@ export default function JobActionBar({
               }}
             >
               Mark as Stopped
+            </div>
+          </MenuItem>
+          <MenuItem>
+            <div
+              className="cursor-pointer px-4 py-1 hover:bg-gray-800 rounded flex items-center gap-2"
+              onClick={() => {
+                openConfirm({
+                  title: 'Deploy to Modal',
+                  message: `Deploy this job to Modal for cloud training?\n\nThis will:\n1. Convert config to Modal format\n2. Save config file\n3. Upload dataset to Modal volume (recommended)\n4. Start training on Modal\n\nDo you want to upload the dataset? (Click Cancel to deploy without upload)`,
+                  type: 'info',
+                  confirmText: 'Deploy with Upload',
+                  onConfirm: async () => {
+                    try {
+                      const response = await deployToModal(job.id, true);
+                      const modalUrl = response.data.modalUrl;
+                      let message = `✅ Modal deployment started!\n\n`;
+                      if (modalUrl) {
+                        message += `🔗 Modal Dashboard: ${modalUrl}\n\n`;
+                      }
+                      message += `📄 Config: ${response.data.configRelativePath}\n📁 Dataset: ${response.data.datasetName}\n\n`;
+                      if (modalUrl) {
+                        message += `Click the link above to monitor your training.`;
+                      } else {
+                        message += `📋 How to find your Modal URL:\n`;
+                        if (response.data.howToFindUrl) {
+                          response.data.howToFindUrl.forEach((tip: string, i: number) => {
+                            message += `${i + 1}. ${tip}\n`;
+                          });
+                        } else {
+                          message += `1. Check the terminal where the UI is running\n2. Visit https://modal.com/apps\n`;
+                        }
+                      }
+                      alert(message);
+                      if (onRefresh) onRefresh();
+                    } catch (error: any) {
+                      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+                      const details = error.response?.data?.details || '';
+                      const configFile = error.response?.data?.configFile;
+                      alert(`❌ Failed to deploy to Modal:\n\n${errorMsg}${details ? `\n\nDetails: ${details}` : ''}${configFile ? `\n\nConfig file saved at:\n${configFile}` : ''}`);
+                    }
+                  },
+                  onCancel: async () => {
+                    try {
+                      const response = await deployToModal(job.id, false);
+                      const modalUrl = response.data.modalUrl;
+                      let message = `✅ Modal deployment started!\n\n`;
+                      if (modalUrl) {
+                        message += `🔗 Modal Dashboard: ${modalUrl}\n\n`;
+                      }
+                      message += `📄 Config: ${response.data.configRelativePath}\n\n⚠️ Note: Dataset must be uploaded separately using:\nmodal volume upload zimage-datasets <local_path> /root/datasets/<dataset_name>\n\n`;
+                      if (modalUrl) {
+                        message += `Click the link above to monitor your training.`;
+                      } else {
+                        message += `📋 How to find your Modal URL:\n`;
+                        if (response.data.howToFindUrl) {
+                          response.data.howToFindUrl.forEach((tip: string, i: number) => {
+                            message += `${i + 1}. ${tip}\n`;
+                          });
+                        } else {
+                          message += `1. Check the terminal where the UI is running\n2. Visit https://modal.com/apps\n`;
+                        }
+                      }
+                      alert(message);
+                      if (onRefresh) onRefresh();
+                    } catch (error: any) {
+                      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+                      const details = error.response?.data?.details || '';
+                      const configFile = error.response?.data?.configFile;
+                      alert(`❌ Failed to deploy to Modal:\n\n${errorMsg}${details ? `\n\nDetails: ${details}` : ''}${configFile ? `\n\nConfig file saved at:\n${configFile}` : ''}`);
+                    }
+                  },
+                });
+              }}
+            >
+              <Cloud className="w-4 h-4" />
+              Deploy to Modal
             </div>
           </MenuItem>
         </MenuItems>

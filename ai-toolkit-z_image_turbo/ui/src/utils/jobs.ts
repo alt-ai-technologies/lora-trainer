@@ -2,6 +2,10 @@ import { JobConfig } from '@/types';
 import { Job } from '@prisma/client';
 import { apiClient } from '@/utils/api';
 
+export async function deployToModal(jobID: string, uploadDataset: boolean = false) {
+  return apiClient.post(`/api/jobs/${jobID}/deploy-modal`, { uploadDataset });
+}
+
 export const startJob = (jobID: string) => {
   return new Promise<void>((resolve, reject) => {
     apiClient

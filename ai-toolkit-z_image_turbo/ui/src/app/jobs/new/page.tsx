@@ -44,13 +44,18 @@ export default function TrainingForm() {
     const datasetOptions = datasets.map(name => ({ value: path.join(settings.DATASETS_FOLDER, name), label: name }));
     setDatasetOptions(datasetOptions);
     const defaultDatasetPath = defaultDatasetConfig.folder_path;
+    const invalidPaths = ['/path/to/images/folder', '/path/to/images', ''];
 
+    // Replace placeholder or invalid dataset paths with first available dataset
     for (let i = 0; i < jobConfig.config.process[0].datasets.length; i++) {
       const dataset = jobConfig.config.process[0].datasets[i];
-      if (dataset.folder_path === defaultDatasetPath) {
-        if (datasetOptions.length > 0) {
-          setJobConfig(datasetOptions[0].value, `config.process[0].datasets[${i}].folder_path`);
-        }
+      const isInvalid = !dataset.folder_path || 
+                       invalidPaths.includes(dataset.folder_path) || 
+                       dataset.folder_path.includes('/path/to') ||
+                       dataset.folder_path === defaultDatasetPath;
+      
+      if (isInvalid && datasetOptions.length > 0) {
+        setJobConfig(datasetOptions[0].value, `config.process[0].datasets[${i}].folder_path`);
       }
     }
   }, [datasets, settings, isSettingsLoaded, datasetFetchStatus]);

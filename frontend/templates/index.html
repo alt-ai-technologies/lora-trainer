@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoRA Training Launcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 LoRA Training Launcher</h1>
+            <p class="subtitle">Configure and launch Z-Image Turbo LoRA training on Modal</p>
+        </header>
+
+        <div class="form-container">
+            <form id="trainingForm">
+                <!-- LoRA Name -->
+                <div class="form-group">
+                    <label for="lora_name">LoRA Name *</label>
+                    <input type="text" id="lora_name" name="lora_name" required 
+                           placeholder="my_style_lora_v1" value="my_style_lora_v1">
+                    <small>This will be the folder and filename for your trained LoRA</small>
+                </div>
+
+                <!-- Dataset Selection -->
+                <div class="form-group">
+                    <label for="dataset_path">Dataset Path *</label>
+                    <div class="dataset-selector">
+                        <select id="dataset_select" onchange="updateDatasetPath()">
+                            <option value="">Select a dataset...</option>
+                        </select>
+                        <button type="button" onclick="loadDatasets()" class="btn-refresh">🔄 Refresh</button>
+                    </div>
+                    <input type="text" id="dataset_path" name="dataset_path" required 
+                           placeholder="/root/datasets/my_style" value="/root/datasets/my_style">
+                    <small>Path to your dataset folder (must be /root/datasets/your_dataset_name)</small>
+                </div>
+
+                <!-- Training Steps -->
+                <div class="form-group">
+                    <label for="steps">Training Steps *</label>
+                    <input type="number" id="steps" name="steps" required 
+                           min="100" max="10000" value="2000">
+                    <small>Total number of training steps (500-4000 is typical, default: 2000)</small>
+                </div>
+
+                <!-- Learning Rate -->
+                <div class="form-group">
+                    <label for="learning_rate">Learning Rate *</label>
+                    <input type="number" id="learning_rate" name="learning_rate" required 
+                           step="0.0001" min="0.0001" max="1" value="0.0001">
+                    <small>Learning rate for training (default: 0.0001 or 1e-4)</small>
+                </div>
+
+                <!-- Batch Size -->
+                <div class="form-group">
+                    <label for="batch_size">Batch Size</label>
+                    <input type="number" id="batch_size" name="batch_size" 
+                           min="1" max="4" value="1">
+                    <small>Batch size (default: 1 for 24GB VRAM)</small>
+                </div>
+
+                <!-- Save Every -->
+                <div class="form-group">
+                    <label for="save_every">Save Checkpoint Every N Steps</label>
+                    <input type="number" id="save_every" name="save_every" 
+                           min="50" max="1000" value="250">
+                    <small>How often to save checkpoints (default: 250)</small>
+                </div>
+
+                <!-- Sample Every -->
+                <div class="form-group">
+                    <label for="sample_every">Generate Sample Every N Steps</label>
+                    <input type="number" id="sample_every" name="sample_every" 
+                           min="50" max="1000" value="250">
+                    <small>How often to generate sample images (default: 250)</small>
+                </div>
+
+                <!-- Trigger Word (Optional) -->
+                <div class="form-group">
+                    <label for="trigger_word">Trigger Word (Optional)</label>
+                    <input type="text" id="trigger_word" name="trigger_word" 
+                           placeholder="p3r5on">
+                    <small>Optional trigger word to add to captions</small>
+                </div>
+
+                <!-- Config Filename -->
+                <div class="form-group">
+                    <label for="config_filename">Config Filename</label>
+                    <input type="text" id="config_filename" name="config_filename" 
+                           placeholder="my_training.yaml" value="my_training.yaml">
+                    <small>Name for the config file (default: my_training.yaml)</small>
+                </div>
+
+                <!-- Custom Name Override -->
+                <div class="form-group">
+                    <label for="custom_name">Custom Name Override (Optional)</label>
+                    <input type="text" id="custom_name" name="custom_name" 
+                           placeholder="Leave empty to use LoRA name">
+                    <small>Override the name in config when launching (optional)</small>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button type="button" onclick="validateAndCreateConfig()" class="btn btn-primary">
+                        📝 Create Config File
+                    </button>
+                    <button type="button" onclick="launchTraining()" class="btn btn-success" disabled id="launchBtn">
+                        🚀 Launch Training
+                    </button>
+                </div>
+            </form>
+
+            <!-- Status Messages -->
+            <div id="status" class="status-message"></div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <h2>📋 Quick Info</h2>
+            <ul>
+                <li><strong>Training Output:</strong> Saved to Modal volume at <code>/root/modal_output/</code></li>
+                <li><strong>Download Results:</strong> <code>modal volume download zimage-training-outputs /root/modal_output/YOUR_LORA_NAME ./outputs/</code></li>
+                <li><strong>View Logs:</strong> <code>modal logs zimage-turbo-training</code></li>
+                <li><strong>Check Status:</strong> Visit <a href="https://modal.com/apps" target="_blank">Modal Dashboard</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

@@ -96,8 +96,25 @@ export default function Settings() {
                         Warning: This software may modify datasets so it is recommended you keep a backup somewhere else
                         or have a dedicated folder for this software.
                       </span>
+                      <br />
+                      <strong className="text-yellow-400">Important:</strong> This should be the <strong>parent folder</strong> containing all your dataset folders (e.g., <code className="bg-gray-900 px-1 rounded">/path/to/datasets</code>), not a specific dataset folder.
                     </div>
                   </label>
+                  {settings.DATASETS_FOLDER && settings.DATASETS_FOLDER.match(/\/datasets\/[^/]+$/) && (
+                    <div className="mb-2 p-2 bg-yellow-900/30 border border-yellow-700 rounded text-yellow-300 text-sm">
+                      ⚠️ Warning: This path appears to point to a specific dataset folder. It should point to the parent folder containing all datasets.
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const fixedPath = settings.DATASETS_FOLDER.replace(/\/[^/]+$/, '');
+                          handleChange({ target: { name: 'DATASETS_FOLDER', value: fixedPath } } as any);
+                        }}
+                        className="ml-2 underline hover:text-yellow-200"
+                      >
+                        Fix automatically
+                      </button>
+                    </div>
+                  )}
                   <input
                     type="text"
                     id="DATASETS_FOLDER"
@@ -105,7 +122,7 @@ export default function Settings() {
                     value={settings.DATASETS_FOLDER}
                     onChange={handleChange}
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-transparent"
-                    placeholder="Enter datasets folder path"
+                    placeholder="Enter datasets folder path (parent folder, not a specific dataset)"
                   />
                 </div>
               </div>

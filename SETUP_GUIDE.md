@@ -251,6 +251,31 @@ modal volume upload zimage-datasets ./dataset/my_style /root/datasets/my_style
 modal logs zimage-turbo-training
 ```
 
+### Find Your Modal Deployment URL
+
+After deploying a training job, you can monitor it in several ways:
+
+1. **From the UI** - If using the web UI, the Modal dashboard URL will be displayed in the success message (if captured)
+
+2. **Terminal Output** - When you run `modal run`, Modal prints the deployment URL:
+   ```
+   ✓ Created app.
+   → View app at https://modal.com/apps/...
+   ```
+
+3. **Modal Dashboard** - Visit [https://modal.com/apps](https://modal.com/apps) to see all your running deployments
+
+4. **List Active Apps** - Run this command to see all active Modal apps:
+   ```bash
+   modal app list
+   ```
+
+The Modal dashboard provides:
+- Real-time training logs
+- GPU usage and resource monitoring
+- Training progress and metrics
+- Ability to stop/cancel training if needed
+
 ---
 
 ## 💡 Tips

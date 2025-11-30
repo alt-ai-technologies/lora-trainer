@@ -2,9 +2,16 @@
 # Note: Install PyTorch packages separately first (see installation instructions)
 # torch, torchvision, and torchaudio are not included here as they need to be
 # installed with specific CUDA versions
+#
+# This file includes ALL dependencies needed to run the toolkit, including:
+# - Git dependencies: diffusers (specific commit) and easy_dwpose
+# - All Python packages with their required versions
+# - PyTorch will be installed as a dependency of easy_dwpose, but installing
+#   it separately first ensures proper CUDA support
 
 torchao==0.10.0
 safetensors
+# Git dependencies (required)
 git+https://github.com/jaretburkett/easy_dwpose.git
 git+https://github.com/huggingface/diffusers@6bf668c4d217ebc96065e673d8a257fd79950d34
 transformers==4.57.3
@@ -42,5 +49,8 @@ opencv-python
 pytorch-wavelets==1.3.0
 matplotlib==3.10.1
 setuptools==69.5.1
-# Note: torch, torchvision, torchaudio should be installed separately
-# See README.md or use: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+# IMPORTANT: torch, torchvision, and torchaudio MUST be installed separately with CUDA support
+# Install them BEFORE installing this requirements.txt file:
+# pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+# 
+# Note: torchaudio is required by toolkit/config_modules.py and will cause import errors if missing

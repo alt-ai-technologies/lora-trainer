@@ -30,6 +30,24 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { id, name, job_config, gpu_ids } = body;
 
+    // Validate dataset paths before saving
+    const datasets = job_config?.config?.process?.[0]?.datasets || [];
+    const invalidPaths = ['/path/to/images/folder', '/path/to/images', ''];
+    const invalidDatasets = datasets.filter((ds: any) => 
+      !ds.folder_path || invalidPaths.includes(ds.folder_path) || ds.folder_path.includes('/path/to')
+    );
+    
+    if (invalidDatasets.length > 0) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid dataset path',
+          details: `Please select a valid dataset. The placeholder path "${invalidDatasets[0].folder_path}" is not valid.`,
+          suggestion: 'Select a dataset from the dropdown menu in the job form.'
+        },
+        { status: 400 }
+      );
+    }
+
     if (id) {
       // Update existing training
       const training = await prisma.job.update({
