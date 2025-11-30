@@ -42,9 +42,21 @@ Both scripts support:
 - `--output` - Output file path (defaults to `output/` directory)
 - `--seed` - Random seed for reproducibility
 
-Example:
+Z-Image-Turbo also supports LoRA:
+- `--lora` - HuggingFace LoRA repo ID
+- `--lora-weight-name` - LoRA weights filename (auto-detected if repo has only one .safetensors file)
+- `--lora-scale` - LoRA strength (default: 1.0)
+
+Examples:
 ```bash
 uv run modal run zimage_turbo_gen.py --prompt "a cat astronaut" --output output/cat.png --seed 42
+```
+
+With LoRA:
+```bash
+uv run modal run zimage_turbo_gen.py \
+  --prompt "a cat playing piano" \
+  --lora "ostris/z_image_turbo_childrens_drawings"
 ```
 
 ## Notes

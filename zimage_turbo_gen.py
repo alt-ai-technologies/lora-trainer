@@ -24,6 +24,8 @@ image = (
         "sentencepiece",
         "huggingface_hub",
         "hf_transfer",
+        "peft",
+        "safetensors",
         "git+https://github.com/huggingface/diffusers",
         index_url="https://download.pytorch.org/whl/cu121",
         extra_index_url="https://pypi.org/simple",
@@ -32,11 +34,11 @@ image = (
         "HF_HUB_ENABLE_HF_TRANSFER": "1",
         "HF_HOME": CACHE_DIR,
     })
+    .add_local_file("zimage.py", "/root/zimage.py")
 )
 
 with image.imports():
-    import torch
-    from diffusers import ZImagePipeline
+    from zimage import ZImageModel
 
 
 @app.cls(
@@ -54,13 +56,7 @@ class ImageGenerator:
         snapshot_download(MODEL_ID, cache_dir=CACHE_DIR, token=os.environ.get("HF_TOKEN"))
         model_cache.commit()
 
-        torch.backends.cuda.matmul.allow_tf32 = True
-        self.pipe = ZImagePipeline.from_pretrained(
-            MODEL_ID,
-            torch_dtype=torch.bfloat16,
-            cache_dir=CACHE_DIR,
-        )
-        self.pipe.to("cuda")
+        self.model = ZImageModel(MODEL_ID, CACHE_DIR)
 
     @modal.method()
     def generate(
@@ -70,22 +66,53 @@ class ImageGenerator:
         width: int = 1024,
         num_inference_steps: int = 9,
         seed: int | None = None,
+        lora_id: str | None = None,
+        lora_weight_name: str | None = None,
+        lora_scale: float = 1.0,
     ) -> bytes:
-        generator = torch.Generator("cuda").manual_seed(seed) if seed is not None else None
+        from huggingface_hub import hf_hub_download, list_repo_files
 
-        image = self.pipe(
-            prompt=prompt,
-            height=height,
-            width=width,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=0.0,
-            generator=generator,
-        ).images[0]
+        lora_loaded = False
+        if lora_id:
+            if not lora_weight_name:
+                # Auto-detect safetensors file if there's only one
+                files = list_repo_files(lora_id, token=os.environ.get("HF_TOKEN"))
+                safetensors_files = [f for f in files if f.endswith(".safetensors")]
+                if len(safetensors_files) == 0:
+                    raise ValueError(f"No .safetensors files found in {lora_id}")
+                elif len(safetensors_files) == 1:
+                    lora_weight_name = safetensors_files[0]
+                else:
+                    raise ValueError(
+                        f"Multiple .safetensors files in {lora_id}: {safetensors_files}. "
+                        "Use --lora-weight-name to specify which one."
+                    )
+            try:
+                lora_path = hf_hub_download(
+                    repo_id=lora_id,
+                    filename=lora_weight_name,
+                    cache_dir=CACHE_DIR,
+                    token=os.environ.get("HF_TOKEN"),
+                )
+                model_cache.commit()
+                self.model.load_lora(lora_path, scale=lora_scale)
+                lora_loaded = True
+            except Exception:
+                if lora_loaded:
+                    self.model.unload_lora()
+                raise
 
-        from io import BytesIO
-        buffer = BytesIO()
-        image.save(buffer, format="PNG")
-        return buffer.getvalue()
+        try:
+            return self.model.generate(
+                prompt=prompt,
+                height=height,
+                width=width,
+                num_inference_steps=num_inference_steps,
+                seed=seed,
+            )
+        finally:
+            if lora_loaded:
+                self.model.unload_lora()
 
 
 @app.local_entrypoint()
@@ -93,12 +120,23 @@ def main(
     prompt: str = "a photo of a cat wearing a tiny hat",
     output: str = None,
     seed: int = None,
+    lora: str = None,
+    lora_weight_name: str = None,
+    lora_scale: float = 1.0,
 ):
     from utils import get_output_path
 
     print(f"Generating: {prompt}")
+    if lora:
+        print(f"Using LoRA: {lora} (scale={lora_scale})")
     generator = ImageGenerator()
-    image_bytes = generator.generate.remote(prompt, seed=seed)
+    image_bytes = generator.generate.remote(
+        prompt,
+        seed=seed,
+        lora_id=lora,
+        lora_weight_name=lora_weight_name,
+        lora_scale=lora_scale,
+    )
 
     output_path = get_output_path(prompt, output, prefix="zimage")
     output_path.write_bytes(image_bytes)
