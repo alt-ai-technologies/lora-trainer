@@ -10,6 +10,7 @@ Usage:
 
 import os
 import sys
+
 import modal
 from pathlib import Path
 
@@ -269,23 +270,33 @@ def print_end_message(jobs_completed, jobs_failed):
 
 
 @app.local_entrypoint()
-def local_main(config_file_list: list[str], recover: bool = False, name: str = None):
+def local_main(*args):
     """
     Local entrypoint to run training on Modal.
-    
+
     Usage:
         modal run modal_train_deploy.py config/my_training.yaml
         modal run modal_train_deploy.py config/training1.yaml config/training2.yaml --recover
+        modal run modal_train_deploy.py config/my_training.yaml --name custom_name
     """
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Z-Image Turbo LoRA Training on Modal")
+    parser.add_argument("config_files", nargs="+", help="Config file(s) to run")
+    parser.add_argument("--recover", action="store_true", help="Continue running jobs even if one fails")
+    parser.add_argument("--name", type=str, default=None, help="Optional name to replace [name] tag in config")
+
+    parsed = parser.parse_args(args=args)
+
     # Convert list to comma-separated string
-    config_file_list_str = ",".join(config_file_list)
-    
+    config_file_list_str = ",".join(parsed.config_files)
+
     result = main.remote(
         config_file_list_str=config_file_list_str,
-        recover=recover,
-        name=name
+        recover=parsed.recover,
+        name=parsed.name
     )
-    
+
     print(f"\nTraining execution completed")
     return result
 

@@ -38,7 +38,7 @@ config:
         #
         # To mount a local dataset, ensure your dataset folder is accessible when running modal
         # To use a volume dataset, upload it first using Modal CLI or script
-        - folder_path: "/root/datasets/my_dataset"  # UPDATE THIS PATH
+        - folder_path: "/root/datasets/my_style"  # UPDATE THIS PATH
           caption_ext: "txt"
           caption_dropout_rate: 0.05  # will drop out the caption 5% of time
           shuffle_tokens: false  # shuffle caption order, split by commas
