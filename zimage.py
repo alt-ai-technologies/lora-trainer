@@ -1,6 +1,22 @@
 import torch
 from diffusers import ZImagePipeline
 from safetensors.torch import load_file
+from transformers import pipeline as hf_pipeline
+
+
+class SafetyChecker:
+    def __init__(self, device: str = "cuda"):
+        self.classifier = hf_pipeline(
+            "image-classification",
+            model="Falconsai/nsfw_image_detection",
+            device=device,
+        )
+
+    def check(self, image) -> dict:
+        """Return NSFW scores for an image."""
+        results = self.classifier(image)
+        # Convert list of {label, score} to dict
+        return {r["label"]: r["score"] for r in results}
 
 
 class ZImageModel:
@@ -135,7 +151,8 @@ class ZImageModel:
         width: int = 1024,
         num_inference_steps: int = 9,
         seed: int | None = None,
-    ) -> bytes:
+        safety_checker: SafetyChecker | None = None,
+    ) -> dict:
         generator = torch.Generator("cuda").manual_seed(seed) if seed is not None else None
 
         image = self.pipe(
@@ -147,7 +164,16 @@ class ZImageModel:
             generator=generator,
         ).images[0]
 
+        # Run safety check if provided
+        safety_scores = None
+        if safety_checker:
+            safety_scores = safety_checker.check(image)
+
         from io import BytesIO
         buffer = BytesIO()
         image.save(buffer, format="PNG")
-        return buffer.getvalue()
+
+        return {
+            "image_bytes": buffer.getvalue(),
+            "safety_scores": safety_scores,
+        }

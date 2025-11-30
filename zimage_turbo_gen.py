@@ -38,7 +38,7 @@ image = (
 )
 
 with image.imports():
-    from zimage import ZImageModel
+    from zimage import ZImageModel, SafetyChecker
 
 
 @app.cls(
@@ -57,6 +57,7 @@ class ImageGenerator:
         model_cache.commit()
 
         self.model = ZImageModel(MODEL_ID, CACHE_DIR)
+        self.safety_checker = SafetyChecker()
 
     @modal.method()
     def generate(
@@ -69,7 +70,9 @@ class ImageGenerator:
         lora_id: str | None = None,
         lora_weight_name: str | None = None,
         lora_scale: float = 1.0,
-    ) -> bytes:
+        safe: bool = False,
+        nsfw_threshold: float = 0.9,
+    ) -> dict:
         from huggingface_hub import hf_hub_download, list_repo_files
 
         lora_loaded = False
@@ -103,13 +106,27 @@ class ImageGenerator:
                 raise
 
         try:
-            return self.model.generate(
+            result = self.model.generate(
                 prompt=prompt,
                 height=height,
                 width=width,
                 num_inference_steps=num_inference_steps,
                 seed=seed,
+                safety_checker=self.safety_checker,
             )
+
+            # Block NSFW content in safe mode
+            if safe and result["safety_scores"]:
+                nsfw_score = result["safety_scores"].get("nsfw", 0)
+                if nsfw_score > nsfw_threshold:
+                    result["blocked"] = True
+                    result["image_bytes"] = None
+                else:
+                    result["blocked"] = False
+            else:
+                result["blocked"] = False
+
+            return result
         finally:
             if lora_loaded:
                 self.model.unload_lora()
@@ -123,21 +140,33 @@ def main(
     lora: str = None,
     lora_weight_name: str = None,
     lora_scale: float = 1.0,
+    safe: bool = False,
 ):
     from utils import get_output_path
 
     print(f"Generating: {prompt}")
     if lora:
         print(f"Using LoRA: {lora} (scale={lora_scale})")
+    if safe:
+        print("Safe mode: NSFW content will be blocked")
     generator = ImageGenerator()
-    image_bytes = generator.generate.remote(
+    result = generator.generate.remote(
         prompt,
         seed=seed,
         lora_id=lora,
         lora_weight_name=lora_weight_name,
         lora_scale=lora_scale,
+        safe=safe,
     )
 
+    if result["safety_scores"]:
+        nsfw_score = result["safety_scores"].get("nsfw", 0)
+        print(f"Safety: nsfw={nsfw_score:.1%}")
+
+    if result["blocked"]:
+        print("Image blocked: NSFW content detected")
+        return
+
     output_path = get_output_path(prompt, output, prefix="zimage")
-    output_path.write_bytes(image_bytes)
+    output_path.write_bytes(result["image_bytes"])
     print(f"Saved to {output_path}")
