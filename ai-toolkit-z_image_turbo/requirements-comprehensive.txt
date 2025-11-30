@@ -1,0 +1,69 @@
+# Comprehensive Requirements File for AI Toolkit
+# This file includes all dependencies including PyTorch packages
+# Install PyTorch first, then install this file
+
+# PyTorch packages (install these first with CUDA support)
+# For CUDA 12.6:
+# pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+# For CUDA 12.8 (nightly):
+# pip install --pre --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+
+# Core dependencies
+torchao==0.10.0
+safetensors
+transformers==4.57.3
+diffusers@git+https://github.com/huggingface/diffusers@6bf668c4d217ebc96065e673d8a257fd79950d34
+
+# LoRA and training
+lycoris-lora==1.8.3
+peft
+
+# Data processing
+flatten_json
+pyyaml
+oyaml
+pydantic
+omegaconf
+toml
+
+# Image processing
+albumentations==1.4.15
+albucore==0.0.16
+opencv-python
+kornia
+invisible-watermark
+einops
+pytorch-wavelets==1.3.0
+
+# Training and optimization
+accelerate
+bitsandbytes
+prodigyopt
+k-diffusion
+optimum-quanto==0.2.4
+
+# Model components
+open_clip_torch
+timm
+controlnet_aux==0.0.10
+sentencepiece
+
+# Utilities
+python-dotenv
+hf_transfer
+huggingface_hub
+lpips
+pytorch_fid
+matplotlib==3.10.1
+tensorboard
+
+# UI
+gradio
+
+# Other utilities
+python-slugify
+setuptools==69.5.1
+
+# Git dependencies
+easy_dwpose@git+https://github.com/jaretburkett/easy_dwpose.git
+
