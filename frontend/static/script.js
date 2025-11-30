@@ -60,10 +60,21 @@ async function validateAndCreateConfig() {
             body: JSON.stringify(data)
         });
         
+        if (!validateResponse.ok) {
+            const errorText = await validateResponse.text();
+            showStatus('❌ Validation request failed: ' + errorText, 'error');
+            console.error('Validation request error:', validateResponse.status, errorText);
+            return;
+        }
+        
         const validation = await validateResponse.json();
+        console.log('Validation result:', validation);
         
         if (!validation.valid) {
-            showStatus('Validation errors: ' + validation.errors.join(', '), 'error');
+            const errorMsg = validation.errors && validation.errors.length > 0 
+                ? validation.errors.join(', ') 
+                : 'Validation failed';
+            showStatus('❌ Validation errors: ' + errorMsg, 'error');
             return;
         }
     } catch (error) {
@@ -83,17 +94,41 @@ async function validateAndCreateConfig() {
             body: JSON.stringify(data)
         });
         
-        const result = await response.json();
+        // Check if response is ok
+        if (!response.ok) {
+            let errorText;
+            try {
+                errorText = await response.text();
+            } catch (e) {
+                errorText = `HTTP ${response.status} ${response.statusText}`;
+            }
+            showStatus(`❌ HTTP Error ${response.status}: ${errorText}`, 'error');
+            console.error('HTTP Error:', response.status, errorText);
+            return;
+        }
+        
+        let result;
+        try {
+            result = await response.json();
+            console.log('Config create response:', result);
+        } catch (e) {
+            const text = await response.text();
+            showStatus(`❌ Invalid JSON response: ${text.substring(0, 100)}`, 'error');
+            console.error('JSON parse error:', e, 'Response text:', text);
+            return;
+        }
         
         if (result.success) {
             configCreated = true;
             document.getElementById('launchBtn').disabled = false;
             showStatus(`✅ ${result.message}`, 'success');
         } else {
-            showStatus('❌ Error: ' + result.error, 'error');
+            showStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+            console.error('Config create error:', result);
         }
     } catch (error) {
         showStatus('❌ Error creating config: ' + error.message, 'error');
+        console.error('Exception creating config:', error);
     }
 }
 
@@ -113,6 +148,9 @@ async function launchTraining() {
     };
     
     try {
+        // Show progress bar
+        showProgressBar();
+        
         showStatus('🚀 Launching training on Modal...', 'info');
         
         const response = await fetch('/api/training/launch', {
@@ -123,24 +161,79 @@ async function launchTraining() {
             body: JSON.stringify(data)
         });
         
+        if (!response.ok) {
+            const errorText = await response.text();
+            hideProgressBar();
+            showStatus('❌ HTTP Error: ' + errorText, 'error');
+            return;
+        }
+        
         const result = await response.json();
         
         if (result.success) {
+            // Update progress
+            updateProgress(100, 'Training launched successfully!');
+            
+            // Show success message
             showStatus(
                 `✅ Training launched successfully! Process ID: ${result.pid}\n` +
-                `Command: ${result.command}\n` +
-                `Check status at: https://modal.com/apps`,
+                `Command: ${result.command}`,
                 'success'
             );
+            
+            // Show Modal link if available
+            if (result.modal_url) {
+                showModalLink(result.modal_url);
+            } else {
+                // Fallback to general Modal dashboard
+                showModalLink('https://modal.com/apps');
+            }
             
             // Disable launch button after successful launch
             document.getElementById('launchBtn').disabled = true;
         } else {
-            showStatus('❌ Error launching training: ' + result.error, 'error');
+            hideProgressBar();
+            showStatus('❌ Error launching training: ' + (result.error || 'Unknown error'), 'error');
         }
     } catch (error) {
+        hideProgressBar();
         showStatus('❌ Error launching training: ' + error.message, 'error');
+        console.error('Launch training error:', error);
     }
+}
+
+// Progress bar functions
+function showProgressBar() {
+    const container = document.getElementById('progressContainer');
+    container.style.display = 'block';
+    updateProgress(0, 'Launching training...');
+}
+
+function hideProgressBar() {
+    const container = document.getElementById('progressContainer');
+    container.style.display = 'none';
+}
+
+function updateProgress(percent, text) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    progressBar.style.width = percent + '%';
+    progressText.textContent = text;
+}
+
+// Modal link functions
+function showModalLink(url) {
+    const container = document.getElementById('modalLinkContainer');
+    const link = document.getElementById('modalAppLink');
+    
+    link.href = url;
+    container.style.display = 'block';
+}
+
+function hideModalLink() {
+    const container = document.getElementById('modalLinkContainer');
+    container.style.display = 'none';
 }
 
 // Show status message
