@@ -21,14 +21,14 @@ Required environment variables:
 
 ## Scripts
 
-### FLUX.1-dev (`flux_dev_gen.py`)
+### [FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) (`flux_dev_gen.py`)
 High-quality image generation with 50 inference steps.
 
 ```bash
 uv run modal run flux_dev_gen.py --prompt "a cyberpunk cityscape at sunset"
 ```
 
-### Z-Image-Turbo (`zimage_turbo_gen.py`)
+### [Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) (`zimage_turbo_gen.py`)
 Fast image generation with 9 inference steps.
 
 ```bash
