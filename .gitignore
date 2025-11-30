@@ -33,6 +33,7 @@ uv.lock
 .env
 .env.local
 .env.*.local
+.env.backup
 
 # IDE
 .idea/
@@ -47,3 +48,6 @@ output/
 # OS
 .DS_Store
 Thumbs.db
+
+#Marketing
+marketing/
