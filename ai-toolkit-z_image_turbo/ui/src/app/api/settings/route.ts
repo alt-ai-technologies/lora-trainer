@@ -22,6 +22,7 @@ export async function GET() {
     }
     return NextResponse.json(settingsObject);
   } catch (error) {
+    console.error('Error fetching settings:', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }
@@ -31,29 +32,47 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { HF_TOKEN, TRAINING_FOLDER, DATASETS_FOLDER } = body;
 
+    // Ensure values are strings (handle undefined/null)
+    const hfToken = String(HF_TOKEN ?? '');
+    const trainingFolder = String(TRAINING_FOLDER ?? '');
+    const datasetsFolder = String(DATASETS_FOLDER ?? '');
+
     // Upsert both settings
     await Promise.all([
       prisma.settings.upsert({
         where: { key: 'HF_TOKEN' },
-        update: { value: HF_TOKEN },
-        create: { key: 'HF_TOKEN', value: HF_TOKEN },
+        update: { value: hfToken },
+        create: { key: 'HF_TOKEN', value: hfToken },
       }),
       prisma.settings.upsert({
         where: { key: 'TRAINING_FOLDER' },
-        update: { value: TRAINING_FOLDER },
-        create: { key: 'TRAINING_FOLDER', value: TRAINING_FOLDER },
+        update: { value: trainingFolder },
+        create: { key: 'TRAINING_FOLDER', value: trainingFolder },
       }),
       prisma.settings.upsert({
         where: { key: 'DATASETS_FOLDER' },
-        update: { value: DATASETS_FOLDER },
-        create: { key: 'DATASETS_FOLDER', value: DATASETS_FOLDER },
+        update: { value: datasetsFolder },
+        create: { key: 'DATASETS_FOLDER', value: datasetsFolder },
       }),
     ]);
 
     flushCache();
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error updating settings:', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error name:', error?.name);
+    console.error('Error code:', error?.code);
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    return NextResponse.json(
+      { 
+        error: 'Failed to update settings', 
+        details: errorMessage,
+        code: error?.code,
+        name: error?.name
+      },
+      { status: 500 }
+    );
   }
 }

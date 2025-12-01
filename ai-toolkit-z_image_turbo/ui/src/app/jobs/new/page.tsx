@@ -18,6 +18,7 @@ import { FaChevronLeft } from 'react-icons/fa';
 import SimpleJob from './SimpleJob';
 import AdvancedJob from './AdvancedJob';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBanner from '@/components/ErrorBanner';
 import { apiClient } from '@/utils/api';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -36,6 +37,7 @@ export default function TrainingForm() {
 
   const [jobConfig, setJobConfig] = useNestedState<JobConfig>(objectCopy(defaultJobConfig));
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [error, setError] = useState<{ message?: string; details?: string; suggestion?: string } | null>(null);
 
   useEffect(() => {
     if (!isSettingsLoaded) return;
@@ -108,6 +110,7 @@ export default function TrainingForm() {
   const saveJob = async () => {
     if (status === 'saving') return;
     setStatus('saving');
+    setError(null); // Clear any previous errors
 
     apiClient
       .post('/api/jobs', {
@@ -118,6 +121,7 @@ export default function TrainingForm() {
       })
       .then(res => {
         setStatus('success');
+        setError(null);
         if (runId) {
           router.push(`/jobs/${runId}`);
         } else {
@@ -125,12 +129,31 @@ export default function TrainingForm() {
         }
       })
       .catch(error => {
+        setStatus('error');
+        const errorData = error.response?.data;
+        
         if (error.response?.status === 409) {
-          alert('Training name already exists. Please choose a different name.');
+          setError({
+            message: 'Job name already exists',
+            details: 'A job with this name already exists. Please choose a different name.',
+            suggestion: 'Try adding a version number or date to make it unique (e.g., "my_lora_v2")'
+          });
+        } else if (error.response?.status === 400 && errorData) {
+          // Use the detailed error from the API
+          setError({
+            message: errorData.error || 'Validation error',
+            details: errorData.details,
+            suggestion: errorData.suggestion
+          });
         } else {
-          alert('Failed to save job. Please try again.');
+          // Generic error fallback
+          setError({
+            message: 'Failed to save job',
+            details: errorData?.error || error.message || 'An unexpected error occurred. Please try again.',
+            suggestion: 'Check the console for more details or try refreshing the page.'
+          });
         }
-        console.log('Error saving training:', error);
+        console.error('Error saving training:', error);
       })
       .finally(() =>
         setTimeout(() => {
@@ -222,6 +245,9 @@ export default function TrainingForm() {
 
       {showAdvancedView ? (
         <div className="pt-[48px] absolute top-0 left-0 w-full h-full overflow-auto">
+          <div className="p-4">
+            <ErrorBanner error={error} onDismiss={() => setError(null)} />
+          </div>
           <AdvancedJob
             jobConfig={jobConfig}
             setJobConfig={setJobConfig}
@@ -237,6 +263,7 @@ export default function TrainingForm() {
         </div>
       ) : (
         <MainContent>
+          <ErrorBanner error={error} onDismiss={() => setError(null)} />
           <ErrorBoundary
             fallback={
               <div className="flex items-center justify-center h-64 text-lg text-red-600 font-medium bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg">

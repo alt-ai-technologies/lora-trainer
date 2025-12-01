@@ -1280,7 +1280,6 @@ export default function SimpleJob({
         </div>
 
         {status === 'success' && <p className="text-green-500 text-center">Training saved successfully!</p>}
-        {status === 'error' && <p className="text-red-500 text-center">Error saving training. Please try again.</p>}
       </form>
       <AddSingleImageModal />
     </>
