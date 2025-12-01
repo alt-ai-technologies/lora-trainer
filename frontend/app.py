@@ -61,6 +61,47 @@ def create_config():
     try:
         data = request.json
         
+        # Validate required fields
+        if not data.get('lora_name'):
+            return jsonify({
+                'success': False,
+                'error': 'LoRA name is required'
+            }), 400
+        
+        if not data.get('dataset_path'):
+            return jsonify({
+                'success': False,
+                'error': 'Dataset path is required'
+            }), 400
+        
+        # Validate training steps
+        try:
+            steps = int(data.get('steps', 2000))
+            if steps < 100 or steps > 10000:
+                return jsonify({
+                    'success': False,
+                    'error': 'Training steps must be between 100 and 10000'
+                }), 400
+        except (ValueError, TypeError):
+            return jsonify({
+                'success': False,
+                'error': 'Training steps must be a valid number'
+            }), 400
+        
+        # Validate learning rate
+        try:
+            lr = float(data.get('learning_rate', 1e-4))
+            if lr <= 0 or lr > 1:
+                return jsonify({
+                    'success': False,
+                    'error': 'Learning rate must be between 0 and 1'
+                }), 400
+        except (ValueError, TypeError):
+            return jsonify({
+                'success': False,
+                'error': 'Learning rate must be a valid number'
+            }), 400
+        
         # Read the example config
         with open(EXAMPLE_CONFIG, 'r') as f:
             config = yaml.safe_load(f)
@@ -116,8 +157,34 @@ def launch_training():
         config_filename = data.get('config_filename', 'my_training.yaml')
         custom_name = data.get('custom_name')
         
+        # Find modal command
+        import shutil
+        modal_cmd = shutil.which('modal')
+        if not modal_cmd:
+            # Try venv location first (most common)
+            venv_modal = PROJECT_ROOT / '.venv' / 'bin' / 'modal'
+            if venv_modal.exists():
+                modal_cmd = str(venv_modal)
+            else:
+                # Try common locations
+                possible_paths = [
+                    os.path.expanduser('~/.local/bin/modal'),
+                    '/usr/local/bin/modal',
+                    '/usr/bin/modal',
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        modal_cmd = path
+                        break
+        
+        if not modal_cmd:
+            return jsonify({
+                'success': False,
+                'error': 'Modal CLI not found. Please install Modal: pip install modal'
+            }), 500
+        
         # Build the command
-        cmd = ['modal', 'run', 'modal_train_deploy.py', f'config/{config_filename}']
+        cmd = [modal_cmd, 'run', 'modal_train_deploy.py', f'config/{config_filename}']
         
         if custom_name:
             cmd.extend(['--name', custom_name])
@@ -134,17 +201,43 @@ def launch_training():
             cwd=PROJECT_ROOT
         )
         
-        return jsonify({
+        # Try to extract Modal app URL from output (non-blocking)
+        modal_url = None
+        try:
+            # Read initial output to get Modal URL
+            import select
+            import time
+            if select.select([process.stdout], [], [], 0.5)[0]:
+                output = process.stdout.read(1000)  # Read first 1000 chars
+                # Look for Modal URL pattern
+                import re
+                url_pattern = r'https://modal\.com/apps/[^\s\)]+'
+                match = re.search(url_pattern, output)
+                if match:
+                    modal_url = match.group(0)
+        except:
+            pass  # If we can't get URL, that's okay
+        
+        response_data = {
             'success': True,
             'message': 'Training launched successfully',
             'pid': process.pid,
             'command': ' '.join(cmd)
-        })
+        }
+        
+        if modal_url:
+            response_data['modal_url'] = modal_url
+        
+        return jsonify(response_data)
     
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Launch training error: {error_details}")
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'details': error_details
         }), 500
 
 
@@ -188,10 +281,12 @@ def validate():
         
         try:
             steps = int(data.get('steps', 2000))
-            if steps < 100 or steps > 10000:
-                errors.append('Training steps should be between 100 and 10000')
-        except ValueError:
-            errors.append('Training steps must be a number')
+            if steps < 100:
+                errors.append('Training steps must be at least 100 (you entered: {})'.format(steps))
+            elif steps > 10000:
+                errors.append('Training steps must be at most 10000 (you entered: {})'.format(steps))
+        except (ValueError, TypeError):
+            errors.append('Training steps must be a valid number')
         
         try:
             lr = float(data.get('learning_rate', 1e-4))

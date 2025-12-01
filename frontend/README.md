@@ -15,16 +15,29 @@ A simple web interface for launching Z-Image Turbo LoRA training on Modal.
 
 ### Install Dependencies
 
+**Using system Python (recommended):**
 ```bash
 cd frontend
-pip install -r requirements.txt
+pip install -r requirements.txt --break-system-packages
 ```
+
+**Note:** On WSL/Ubuntu systems, you may need the `--break-system-packages` flag due to externally-managed environment restrictions. The packages will be installed in your user site-packages.
 
 ### Run the UI
 
+**Option 1: Using system Python directly (recommended):**
 ```bash
-python app.py
+cd frontend
+/usr/bin/python3 app.py
 ```
+
+**Option 2: Using the startup script (automatically uses system Python):**
+```bash
+cd frontend
+./run.sh
+```
+
+**Note:** The startup script uses system Python (`/usr/bin/python3`) to avoid conflicts with the project's `.venv`. If your system Python is at a different location, the script will fall back to `python3`.
 
 Then open your browser to: `http://localhost:5000`
 
