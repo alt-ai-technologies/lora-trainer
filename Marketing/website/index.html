@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoRA Trainer - Train Custom AI Models, Your Way</title>
+    <meta name="description" content="Train custom AI image generation models with LoRA Trainer. Support for Z-Image Turbo, FLUX.1, FLUX.2. Works on consumer hardware and cloud.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <span class="logo-icon">🎨</span>
+                    <span class="logo-text">LoRA Trainer</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#docs">Docs</a></li>
+                    <li><a href="#community">Community</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="#signup" class="btn btn-secondary">Sign In</a>
+                    <a href="#signup" class="btn btn-primary">Get Started</a>
+                </div>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>✨ Now Supporting FLUX.2</span>
+                </div>
+                <h1 class="hero-title">
+                    Train Custom AI Models,<br>
+                    <span class="gradient-text">Your Way</span>
+                </h1>
+                <p class="hero-description">
+                    The most accessible, cost-effective platform for training custom AI image generation models. 
+                    Support for Z-Image Turbo, FLUX.1, FLUX.2. Works on consumer hardware and cloud.
+                </p>
+                <div class="hero-actions">
+                    <a href="#signup" class="btn btn-primary btn-large">Start Training Free</a>
+                    <a href="#demo" class="btn btn-outline btn-large">Watch Demo</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">15K+</div>
+                        <div class="stat-label">Models Trained</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">80%</div>
+                        <div class="stat-label">Cost Savings</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">8 Steps</div>
+                        <div class="stat-label">Turbo Generation</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="code-window">
+                    <div class="window-header">
+                        <span class="window-dot"></span>
+                        <span class="window-dot"></span>
+                        <span class="window-dot"></span>
+                        <span class="window-title">train_lora.yaml</span>
+                    </div>
+                    <div class="code-content">
+                        <pre><code>model:
+  name_or_path: "Tongyi-MAI/Z-Image-Turbo"
+  arch: "zimage"
+  assistant_lora_path: "ostris/zimage_turbo_training_adapter"
+
+train:
+  dataset_folder: "./dataset"
+  steps: 2000
+  batch_size: 1
+
+# Train in 30-60 minutes
+# Cost: $0.50-$1.20 per run</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Choose LoRA Trainer?</h2>
+                <p class="section-description">
+                    Built for creators, developers, and businesses who need custom AI models without the complexity or cost.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Turbo Model Support</h3>
+                    <p class="feature-description">
+                        First-class support for Z-Image Turbo, FLUX.1, and FLUX.2. Generate high-quality images in just 8 steps.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">80% Cost Savings</h3>
+                    <p class="feature-description">
+                        Train models for $0.50-$1.20 per run, compared to $5-20 with competitors. Open-source core keeps costs low.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖥️</div>
+                    <h3 class="feature-title">Consumer Hardware</h3>
+                    <p class="feature-description">
+                        Works on GPUs with 24GB+ VRAM. No need for expensive enterprise hardware. Train locally or in the cloud.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3 class="feature-title">Cloud-Native</h3>
+                    <p class="feature-description">
+                        One-click cloud training with Modal integration. Model caching, persistent storage, and automatic scaling.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">Training Adapters</h3>
+                    <p class="feature-description">
+                        Proprietary training adapter technology preserves model speed while enabling fine-tuning. Best of both worlds.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Open Source Core</h3>
+                    <p class="feature-description">
+                        Built on AI Toolkit foundation. Open-source core with commercial convenience. No vendor lock-in.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-description">
+                    Train custom AI models in three simple steps. No deep ML expertise required.
+                </p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Prepare Your Dataset</h3>
+                        <p class="step-description">
+                            Upload images and captions. Our platform handles resizing, bucketing, and preprocessing automatically.
+                        </p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Configure Training</h3>
+                        <p class="step-description">
+                            Choose your model (Z-Image Turbo, FLUX.1, FLUX.2), set parameters, and select local or cloud training.
+                        </p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Train & Deploy</h3>
+                        <p class="step-description">
+                            Train your model in 30-60 minutes. Download your LoRA and start generating custom images immediately.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Simple, Transparent Pricing</h2>
+                <p class="section-description">
+                    Start free, scale as you grow. No hidden fees, no surprises.
+                </p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Free</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">$0</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Full CLI access</li>
+                        <li>✅ Local training</li>
+                        <li>✅ All model support</li>
+                        <li>✅ Community support</li>
+                        <li>✅ Open-source core</li>
+                    </ul>
+                    <a href="#signup" class="btn btn-outline btn-block">Get Started</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Pro</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">$29</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Everything in Free</li>
+                        <li>✅ Web UI access</li>
+                        <li>✅ 10 cloud training runs/month</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ Model marketplace access</li>
+                    </ul>
+                    <a href="#signup" class="btn btn-primary btn-block">Start Free Trial</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Business</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">$99</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Everything in Pro</li>
+                        <li>✅ Unlimited cloud training</li>
+                        <li>✅ Team collaboration</li>
+                        <li>✅ Advanced analytics</li>
+                        <li>✅ API access</li>
+                        <li>✅ Custom integrations</li>
+                    </ul>
+                    <a href="#signup" class="btn btn-outline btn-block">Contact Sales</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Enterprise</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">Custom</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Everything in Business</li>
+                        <li>✅ Dedicated infrastructure</li>
+                        <li>✅ SLA guarantees</li>
+                        <li>✅ Custom model support</li>
+                        <li>✅ On-premise deployment</li>
+                        <li>✅ Professional services</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline btn-block">Contact Sales</a>
+                </div>
+            </div>
+            <div class="pricing-note">
+                <p>All plans include usage-based pricing for additional training runs: $0.50-$1.20 per run</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Loved by Creators & Developers</h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"LoRA Trainer made it possible to train custom models for my client work. The cost savings alone paid for itself in the first month."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👤</div>
+                        <div class="author-info">
+                            <div class="author-name">Sarah Chen</div>
+                            <div class="author-role">Creative Director</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"As an indie game developer, I needed consistent art styles without breaking the bank. LoRA Trainer was the perfect solution."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👤</div>
+                        <div class="author-info">
+                            <div class="author-name">Marcus Rodriguez</div>
+                            <div class="author-role">Game Developer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The turbo model support is incredible. 8-step generation changed how we create brand imagery. Fast, affordable, and high-quality."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👤</div>
+                        <div class="author-info">
+                            <div class="author-name">Alex Kim</div>
+                            <div class="author-role">Marketing Agency Owner</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Train Your First Model?</h2>
+                <p class="cta-description">
+                    Join thousands of creators and developers training custom AI models with LoRA Trainer.
+                </p>
+                <div class="cta-actions">
+                    <a href="#signup" class="btn btn-primary btn-large">Start Training Free</a>
+                    <a href="#docs" class="btn btn-outline btn-large">Read Documentation</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🎨</span>
+                        <span class="logo-text">LoRA Trainer</span>
+                    </div>
+                    <p class="footer-description">
+                        Train custom AI models, your way. Open-source core with commercial convenience.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="GitHub">GitHub</a>
+                        <a href="#" aria-label="Twitter">Twitter</a>
+                        <a href="#" aria-label="Discord">Discord</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#docs">Documentation</a></li>
+                        <li><a href="#changelog">Changelog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#blog">Blog</a></li>
+                        <li><a href="#careers">Careers</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#community">Community</a></li>
+                        <li><a href="#support">Support</a></li>
+                        <li><a href="#api">API</a></li>
+                        <li><a href="#status">Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 LoRA Trainer. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#privacy">Privacy</a>
+                    <a href="#terms">Terms</a>
+                    <a href="#license">License</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
