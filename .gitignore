@@ -45,6 +45,9 @@ uv.lock
 # Output
 output/
 
+# Training datasets
+datasets/
+
 # OS
 .DS_Store
 Thumbs.db

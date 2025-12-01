@@ -820,6 +820,14 @@ Before using Modal, ensure:
 
 After training completes:
 
+=======
+Z-Image-Turbo also supports LoRA and safety checking:
+- `--lora` - HuggingFace LoRA repo ID
+- `--lora-weight-name` - LoRA weights filename (auto-detected if repo has only one .safetensors file)
+- `--lora-scale` - LoRA strength (default: 1.0)
+- `--safe` - Block NSFW content (uses [Falconsai/nsfw_image_detection](https://huggingface.co/Falconsai/nsfw_image_detection))
+
+Examples:
 ```bash
 modal volume download zimage-training-outputs \
   /root/modal_output/<job_name> \
