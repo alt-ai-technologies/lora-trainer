@@ -1,0 +1,19 @@
+{
+  "datasets": [
+    {
+      "local_path": "/home/nfmil/projects/lora_trainer/ai-toolkit-z_image_turbo/datasets/my_style_ui",
+      "name": "my_style_ui",
+      "path": "/root/datasets/my_style_ui"
+    }
+  ],
+  "validation": {
+    "errors": [],
+    "valid": true
+  },
+  "createResult": {
+    "config_filename": "test_lora_v1.yaml",
+    "config_path": "/home/nfmil/projects/lora_trainer/ai-toolkit-z_image_turbo/config/test_lora_v1.yaml",
+    "message": "Config file created: /home/nfmil/projects/lora_trainer/ai-toolkit-z_image_turbo/config/test_lora_v1.yaml",
+    "success": true
+  }
+}

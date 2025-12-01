@@ -1,0 +1,120 @@
+---
+job: extension
+config:
+  # this name will be the folder and filename name
+  # MUST match the previous training name to resume
+  name: "zimage_turbo_book_covers_lora_v1"
+  process:
+    - type: 'sd_trainer'
+      # root folder to save training sessions/samples/weights
+      # MUST match MOUNT_DIR from modal_train_deploy.py
+      training_folder: "/root/modal_output"
+      # uncomment to see performance stats in the terminal every N steps
+#      performance_log_every: 1000
+      device: cuda:0
+      # if a trigger word is specified, it will be added to captions of training data if it does not already exist
+      # alternatively, in your captions you can add [trigger] and it will be replaced with the trigger word
+#      trigger_word: "bookcover"
+      network:
+        type: "lora"
+        linear: 128
+        linear_alpha: 128
+        transformer_only: true  # Z-Image Turbo uses transformer architecture
+      save:
+        dtype: float16 # precision to save
+        save_every: 250 # save every this many steps
+        max_step_saves_to_keep: 4 # how many intermittent saves to keep
+        push_to_hub: false #change this to True to push your trained model to Hugging Face.
+        # You can either set up a HF_TOKEN env variable or you'll be prompted to log-in         
+#       hf_repo_id: your-username/your-model-slug
+#       hf_private: true #whether the repo is private or public        
+      datasets:
+        # datasets are a folder of images. captions need to be txt files with the same name as the image
+        # for instance image2.jpg and image2.txt. Only jpg, jpeg, and png are supported currently
+        # images will automatically be resized and bucketed into the resolution specified
+        # 
+        # For Modal deployment, you have two options:
+        # 1. Mount local dataset: Use /root/datasets/your_dataset (mounted from local machine)
+        # 2. Use volume dataset: Use /root/datasets/your_dataset (uploaded to Modal volume)
+        #
+        # To mount a local dataset, ensure your dataset folder is accessible when running modal
+        # To use a volume dataset, upload it first using Modal CLI or script
+        #
+        # RECOMMENDED: Use the Uchida Laboratory Book Cover Dataset
+        # Download from: https://github.com/uchidalab/book-dataset
+        # Extract and organize: images in folder, captions as .txt files with same name
+        - folder_path: "/root/datasets/book_covers"  # UPDATE THIS PATH to your book cover dataset
+          caption_ext: "txt"
+          caption_dropout_rate: 0.05  # will drop out the caption 5% of time
+          shuffle_tokens: false  # shuffle caption order, split by commas
+          cache_latents_to_disk: true  # leave this true unless you know what you're doing
+          # Portrait-oriented resolutions for book covers (taller than wide)
+          # Common book cover aspect ratios: 2:3, 3:4, 5:8
+          resolution: [ 512, 768, 1024 ]  # Z-Image Turbo supports multiple resolutions
+      train:
+        batch_size: 1
+        # Training will automatically resume from step 500 (latest checkpoint)
+        # This is the total number of steps - training will continue from where it left off
+        steps: 1000  # total steps (will resume from 500, so trains steps 500-1000)
+        gradient_accumulation_steps: 4  # recommended for 24GB VRAM
+        train_unet: true
+        train_text_encoder: false  # Z-Image Turbo uses Qwen3ForCausalLM, training not recommended
+        gradient_checkpointing: true  # needed unless you have a ton of vram
+        noise_scheduler: "flowmatch" # for training only, required for Z-Image Turbo
+        optimizer: "adamw8bit"
+        lr: 1e-4
+        # uncomment this to skip the pre training sample
+#        skip_first_sample: true
+        # uncomment to completely disable sampling
+#        disable_sampling: true
+        # uncomment to use new bell curved weighting. Experimental but may produce better results
+#        linear_timesteps: true
+
+        # ema will smooth out learning, but could slow it down. Recommended to leave on.
+        ema_config:
+          use_ema: true
+          ema_decay: 0.99
+
+        # will probably need this if gpu supports it, other dtypes may not work correctly
+        dtype: bf16
+      model:
+        # huggingface model name or path
+        # Using Hub path - will download automatically on first run, then cached
+        name_or_path: "Tongyi-MAI/Z-Image-Turbo"
+        arch: "zimage"  # required to identify Z-Image Turbo model
+        # Training adapter - required for Z-Image Turbo training
+        # Using Hub path - will download automatically on first run, then cached
+        assistant_lora_path: "ostris/zimage_turbo_training_adapter/zimage_turbo_training_adapter_v1.safetensors"
+        quantize: true  # run 8bit mixed precision, recommended for 24GB VRAM
+        quantize_te: true  # quantize text encoder as well
+        # low_vram is painfully slow to fuse in the adapter avoid it unless absolutely necessary
+#        low_vram: true  # uncomment this if the GPU is connected to your monitors. It will use less vram to quantize, but is slower.
+        qtype: "qfloat8"  # quantization type
+      sample:
+        sampler: "flowmatch" # must match train.noise_scheduler
+        sample_every: 250 # sample every this many steps
+        width: 768  # portrait orientation for book covers
+        height: 1024  # portrait orientation for book covers
+        prompts:
+          # Sample prompts for book cover generation testing
+          - "modern book cover, thriller novel, dark mysterious atmosphere, minimalist design, bold typography"
+          - "contemporary book cover, science fiction, futuristic cityscape, vibrant colors, geometric patterns"
+          - "book cover design, romance novel, elegant typography, soft pastel colors, floral elements"
+          - "modern book cover, fantasy novel, magical landscape, epic illustration, ornate borders"
+          - "contemporary book cover, mystery novel, noir style, dramatic shadows, vintage aesthetic"
+          - "book cover design, young adult fiction, bright colors, modern illustration, playful typography"
+          - "modern book cover, historical fiction, period-appropriate artwork, elegant design, classic typography"
+          - "book cover design, self-help book, clean minimalist style, inspirational imagery, modern typography"
+          - "contemporary book cover, horror novel, dark atmosphere, unsettling imagery, bold lettering"
+          - "modern book cover, business book, professional design, clean layout, corporate aesthetic"
+        neg: ""  # not used on Z-Image Turbo (flow matching)
+        seed: 42
+        walk_seed: true
+        guidance_scale: 1  # Z-Image Turbo doesn't use guidance scale (flow matching)
+        sample_steps: 8  # 4-8 steps work well for turbo models
+# you can add any additional meta info here. [name] is replaced with config name at top
+meta:
+  name: "[name]"
+  version: '1.0'
+  description: "LoRA trained on modern book covers for Z-Image Turbo model (resuming from step 500)"
+
