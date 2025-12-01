@@ -7,13 +7,96 @@ This repository contains an integration of **Z-Image Turbo** with **AI Toolkit**
 ## 📁 Project Structure
 
 ```
-image_gen/
-├── ai-toolkit-z_image_turbo/    # AI Toolkit with Z-Image Turbo integration
+lora_trainer/
+├── ai-toolkit-z_image_turbo/     # AI Toolkit with Z-Image Turbo integration
 ├── Z-Image-Turbo/                # Documentation and audit reports
+├── book_cover_cli/               # Book cover generation CLI tool
+├── datasets/                     # Training datasets
+│   └── uchida_book_dataset/      # Uchida Laboratory Book Cover Dataset
 ├── tests/                        # Test suites for local and Hub models
 ├── model_vault/                  # Local model storage (downloaded models)
+├── prepare_book_cover_dataset.py # Dataset preparation script
+├── download_and_upload_book_dataset.py # Dataset download/upload script
+├── setup_book_dataset_on_modal.py # Modal dataset setup script
+├── upload_dataset_to_modal.py    # Dataset upload to Modal script
+├── download_training_samples.py  # Download training samples script
+├── BOOK_COVER_DATASET_PREP.md   # Book cover dataset preparation guide
+├── BOOK_COVER_TRAINING_QUICKSTART.md # Book cover training quick start
 └── README.md                     # This file
 ```
+
+---
+
+## 📚 Book Cover LoRA Training & Generation
+
+This project includes specialized tools and configurations for training LoRAs on book cover datasets and generating book covers using trained models.
+
+### Quick Links
+
+- **[Book Cover Training Quick Start](BOOK_COVER_TRAINING_QUICKSTART.md)** - Get started training a book cover LoRA in 3 steps
+- **[Book Cover Dataset Preparation](BOOK_COVER_DATASET_PREP.md)** - Comprehensive guide to preparing book cover datasets
+- **[Book Cover Generator CLI](book_cover_cli/README.md)** - Command-line tool for generating book covers
+- **[Book Cover Generator Quick Start](book_cover_cli/QUICKSTART.md)** - Quick start guide for the CLI
+
+### What's Included
+
+1. **Training Configurations**
+   - `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml` - Main training config
+   - `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers_resume.yaml` - Resume training config
+
+2. **Dataset Preparation Tools**
+   - `prepare_book_cover_dataset.py` - Prepare datasets with auto-captioning
+   - `download_and_upload_book_dataset.py` - Download Uchida dataset and upload to Modal
+   - `setup_book_dataset_on_modal.py` - Setup dataset directly on Modal
+   - `upload_dataset_to_modal.py` - Upload prepared datasets to Modal
+
+3. **Generation Tools**
+   - `book_cover_cli/book_cover_generator.py` - Interactive and CLI book cover generator
+   - `book_cover_cli/generate_on_modal.py` - Generate covers on Modal (GPU access)
+
+4. **Documentation**
+   - `BOOK_COVER_DATASET_PREP.md` - Dataset preparation guide
+   - `BOOK_COVER_TRAINING_QUICKSTART.md` - Training quick start guide
+   - `book_cover_cli/README.md` - CLI documentation
+   - `book_cover_cli/QUICKSTART.md` - CLI quick start
+
+### Quick Start: Train a Book Cover LoRA
+
+```bash
+# 1. Prepare your dataset
+python prepare_book_cover_dataset.py \
+    --input /path/to/book/covers \
+    --output ./datasets/prepared_book_covers \
+    --auto-caption \
+    --min-size 512
+
+# 2. Upload to Modal (optional, or use local mount)
+modal run upload_dataset_to_modal.py \
+    --local-path ./datasets/prepared_book_covers \
+    --remote-path book_covers
+
+# 3. Train the LoRA
+modal run modal_train_deploy.py \
+    ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml
+```
+
+### Quick Start: Generate Book Covers
+
+```bash
+# Interactive mode
+cd book_cover_cli
+python book_cover_generator.py --interactive
+
+# Command line mode
+python book_cover_generator.py \
+    --title "The Dark Forest" \
+    --author "Liu Cixin" \
+    --genre "science fiction" \
+    --color-scheme "dark cosmic" \
+    --mood "mysterious"
+```
+
+See the [Book Cover Training Quick Start](BOOK_COVER_TRAINING_QUICKSTART.md) for detailed instructions.
 
 ---
 
@@ -453,6 +536,13 @@ See [SETUP_GUIDE.md](SETUP_GUIDE.md) for complete Modal setup instructions.
 - **[Modal UI Integration Guide](MODAL_UI_INTEGRATION.md)** - How to use the web UI to deploy to Modal
 - **[Modal Setup Guide](SETUP_GUIDE.md)** - Complete guide for Modal cloud training setup
 
+### Book Cover Training & Generation
+
+- **[Book Cover Training Quick Start](BOOK_COVER_TRAINING_QUICKSTART.md)** - Quick start guide for training book cover LoRAs
+- **[Book Cover Dataset Preparation](BOOK_COVER_DATASET_PREP.md)** - Comprehensive dataset preparation guide
+- **[Book Cover Generator CLI](book_cover_cli/README.md)** - CLI tool for generating book covers
+- **[Book Cover Generator Quick Start](book_cover_cli/QUICKSTART.md)** - Quick start for the CLI
+
 ### Test Documentation
 
 - **[Test Status](tests/TEST_STATUS.md)** - Test results and coverage
@@ -540,6 +630,40 @@ model:
 
 Both methods work! Local paths are faster and don't require internet during training.
 
+### Book Cover Training Example
+
+```bash
+# Prepare dataset
+python prepare_book_cover_dataset.py \
+    --input ./datasets/uchida_book_dataset/images \
+    --output ./datasets/prepared_book_covers \
+    --metadata ./datasets/uchida_book_dataset/metadata.json \
+    --min-size 512
+
+# Train on Modal
+modal run modal_train_deploy.py \
+    ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml
+```
+
+### Book Cover Generation Example
+
+```bash
+# Interactive mode
+cd book_cover_cli
+python book_cover_generator.py --interactive
+
+# Command line mode
+python book_cover_generator.py \
+    --title "The Dark Forest" \
+    --author "Liu Cixin" \
+    --genre "science fiction" \
+    --color-scheme "dark cosmic" \
+    --mood "mysterious" \
+    --style "minimalist" \
+    --width 768 \
+    --height 1024
+```
+
 ---
 
 ## 🛠️ Project Components
@@ -556,6 +680,16 @@ Both methods work! Local paths are faster and don't require internet during trai
 - **Model Vault:** `/home/nfmil/model_vault/`
   - Base model: `Tongyi-MAI/Z-Image-Turbo/` (~31 GB)
   - Training adapter: `ostris/zimage_turbo_training_adapter/` (~163 MB)
+
+### Book Cover Tools
+
+- **CLI Generator:** `book_cover_cli/book_cover_generator.py` - Generate book covers interactively or via CLI
+- **Dataset Prep:** `prepare_book_cover_dataset.py` - Prepare datasets with auto-captioning
+- **Modal Upload:** `upload_dataset_to_modal.py` - Upload datasets to Modal volume
+- **Modal Setup:** `setup_book_dataset_on_modal.py` - Setup datasets directly on Modal
+- **Training Configs:** 
+  - `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml`
+  - `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers_resume.yaml`
 
 ### Test Suites
 
@@ -576,6 +710,38 @@ The tutorial demonstrates:
 - The complete workflow from dataset to trained LoRA
 
 **Example LoRA from Tutorial:** [ostris/z_image_turbo_childrens_drawings](https://huggingface.co/ostris/z_image_turbo_childrens_drawings)
+
+### Book Cover Training Workflow
+
+1. **Prepare Dataset**
+   ```bash
+   python prepare_book_cover_dataset.py \
+       --input ./datasets/uchida_book_dataset/images \
+       --output ./datasets/prepared_book_covers \
+       --metadata ./datasets/uchida_book_dataset/metadata.json \
+       --min-size 512
+   ```
+
+2. **Upload to Modal** (optional)
+   ```bash
+   modal run upload_dataset_to_modal.py \
+       --local-path ./datasets/prepared_book_covers \
+       --remote-path book_covers
+   ```
+
+3. **Train LoRA**
+   ```bash
+   modal run modal_train_deploy.py \
+       ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml
+   ```
+
+4. **Generate Covers**
+   ```bash
+   cd book_cover_cli
+   python book_cover_generator.py --interactive
+   ```
+
+See [BOOK_COVER_TRAINING_QUICKSTART.md](BOOK_COVER_TRAINING_QUICKSTART.md) for detailed instructions.
 
 ---
 
@@ -644,6 +810,22 @@ huggingface-cli login
 - Check path is correct
 - Verify file exists: `ls -lh <adapter_path>`
 - Check Hugging Face Hub access if using Hub path
+
+### Book Cover Generation Issues
+
+**LoRA not found:**
+- Check that the LoRA path is correct
+- Default path assumes Modal volume is mounted
+- Use `--lora-path` to specify a different location
+
+**Out of Memory during generation:**
+- Reduce image size: `--width 512 --height 768`
+- Reduce steps: `--steps 4`
+
+**Dataset preparation errors:**
+- Ensure images are at least 512px on shortest side
+- Check that metadata file format matches expected structure
+- Use `--auto-caption` if metadata is not available
 
 ---
 
@@ -728,6 +910,16 @@ huggingface-cli login
    └── Result: Fast inference with your fine-tuned content
 ```
 
+### Book Cover Training Configuration
+
+The book cover training configs are optimized for portrait-oriented book covers:
+
+- **Resolutions**: `[512, 768, 1024]` - Portrait aspect ratios
+- **Sample Size**: `768x1024` - Standard book cover dimensions
+- **Steps**: `1000-3000` - Optimized for style learning
+- **Sample Prompts**: 10 book cover-specific prompts for testing
+- **Dataset Path**: `/root/datasets/book_covers` (Modal) or local path
+
 ### Key Code Locations
 
 - **Model Class**: `ai-toolkit-z_image_turbo/extensions_built_in/diffusion_models/z_image/z_image.py`
@@ -738,6 +930,9 @@ huggingface-cli login
 - **Model Registration**: `ai-toolkit-z_image_turbo/extensions_built_in/diffusion_models/__init__.py`
 - **Example Config**: `ai-toolkit-z_image_turbo/config/examples/train_lora_zimage_turbo_24gb.yaml`
 - **Modal Example Config**: `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_zimage_turbo_24gb.yaml`
+- **Book Cover Config**: `ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml`
+- **Book Cover Generator**: `book_cover_cli/book_cover_generator.py`
+- **Dataset Prep**: `prepare_book_cover_dataset.py`
 
 ---
 
@@ -829,4 +1024,223 @@ modal volume download zimage-training-outputs \
 For detailed instructions, see:
 - **[Modal UI Integration Guide](MODAL_UI_INTEGRATION.md)** - Using the web UI
 - **[Modal Setup Guide](SETUP_GUIDE.md)** - Complete setup instructions
+
+---
+
+## 📚 Book Cover Entrypoints & Scripts
+
+### Dataset Preparation Scripts
+
+#### `prepare_book_cover_dataset.py`
+Prepares book cover datasets for training by creating captions and filtering images.
+
+**Usage:**
+```bash
+# With metadata
+python prepare_book_cover_dataset.py \
+    --input /path/to/book/covers \
+    --output /path/to/prepared_dataset \
+    --metadata /path/to/metadata.json \
+    --min-size 512
+
+# With auto-captioning (BLIP)
+python prepare_book_cover_dataset.py \
+    --input /path/to/book/covers \
+    --output /path/to/prepared_dataset \
+    --auto-caption \
+    --min-size 512
+```
+
+**Options:**
+- `--input`: Input directory containing book cover images (required)
+- `--output`: Output directory for prepared dataset (required)
+- `--metadata`: Path to metadata JSON/JSONL file (optional)
+- `--auto-caption`: Use BLIP to auto-generate captions (optional)
+- `--min-size`: Minimum image size in pixels (default: 512)
+- `--max-images`: Maximum number of images to process (optional)
+
+#### `download_and_upload_book_dataset.py`
+Downloads the Uchida Laboratory Book Cover Dataset and uploads it to Modal.
+
+**Usage:**
+```bash
+python download_and_upload_book_dataset.py \
+    --output-dir ./datasets \
+    --max-images 1000  # Optional: limit for testing
+```
+
+**Options:**
+- `--output-dir`: Directory to store downloaded dataset (default: ./datasets)
+- `--max-images`: Maximum number of images to process (optional)
+- `--skip-download`: Skip download, use existing dataset
+- `--skip-prepare`: Skip preparation, use existing prepared dataset
+- `--skip-upload`: Skip upload to Modal
+
+#### `setup_book_dataset_on_modal.py`
+Sets up book cover dataset directly on Modal volume (avoids local upload).
+
+**Usage:**
+```bash
+# Download and setup on Modal
+modal run setup_book_dataset_on_modal.py --max-images 1000
+
+# Create test dataset
+modal run setup_book_dataset_on_modal.py --use-test-data
+```
+
+**Options:**
+- `--max-images`: Maximum number of images to download (optional)
+- `--use-test-data`: Create a small test dataset instead
+
+#### `upload_dataset_to_modal.py`
+Uploads a prepared dataset to Modal volume.
+
+**Usage:**
+```bash
+modal run upload_dataset_to_modal.py \
+    --local-path ./datasets/prepared_book_covers \
+    --remote-path book_covers
+```
+
+**Options:**
+- `--local-path`: Local path to dataset directory (required)
+- `--remote-path`: Remote path in Modal volume (default: book_covers)
+
+### Training Scripts
+
+#### `modal_train_deploy.py`
+Main Modal deployment script for training LoRAs.
+
+**Usage:**
+```bash
+# Train book cover LoRA
+modal run modal_train_deploy.py \
+    ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml
+
+# Resume training
+modal run modal_train_deploy.py \
+    ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers_resume.yaml
+```
+
+### Generation Scripts
+
+#### `book_cover_cli/book_cover_generator.py`
+Interactive and command-line book cover generator.
+
+**Usage:**
+```bash
+# Interactive mode
+cd book_cover_cli
+python book_cover_generator.py --interactive
+
+# Command line mode
+python book_cover_generator.py \
+    --title "The Dark Forest" \
+    --author "Liu Cixin" \
+    --genre "science fiction" \
+    --color-scheme "dark cosmic" \
+    --mood "mysterious" \
+    --style "minimalist" \
+    --width 768 \
+    --height 1024 \
+    --steps 8 \
+    --seed -1 \
+    --output-dir ./book_covers \
+    --lora-path /path/to/lora.safetensors
+```
+
+**Options:**
+- `--title`: Book title (required unless using `--interactive`)
+- `--author`: Author name (optional)
+- `--genre`: Genre (thriller, romance, sci-fi, fantasy, etc.) (optional)
+- `--color-scheme`: Color scheme (dark, vibrant, pastel, etc.) (optional)
+- `--mood`: Mood/atmosphere (mysterious, inspiring, dramatic, etc.) (optional)
+- `--style`: Design style (minimalist, bold, elegant, etc.) (optional)
+- `--typography`: Typography style (bold, elegant, modern, etc.) (optional)
+- `--elements`: Additional design elements (optional)
+- `--width`: Image width in pixels (default: 768)
+- `--height`: Image height in pixels (default: 1024)
+- `--steps`: Number of inference steps (default: 8)
+- `--seed`: Random seed (-1 for random, default: -1)
+- `--output-dir`: Output directory (default: ./book_covers)
+- `--lora-path`: Path to LoRA checkpoint (default: step 500 checkpoint)
+- `--interactive`: Run in interactive mode
+
+#### `book_cover_cli/generate_on_modal.py`
+Generate book covers on Modal (for GPU access).
+
+**Usage:**
+```bash
+cd book_cover_cli
+python generate_on_modal.py --title "My Book" --genre thriller
+```
+
+#### `book_cover_cli/download_lora.py`
+Download LoRA checkpoint from Modal volume to local machine.
+
+**Usage:**
+```bash
+cd book_cover_cli
+python download_lora.py
+```
+
+### Utility Scripts
+
+#### `download_training_samples.py`
+Download training sample images from Modal volume.
+
+**Usage:**
+```bash
+modal run download_training_samples.py ./downloaded_training_samples
+```
+
+**Options:**
+- Output directory (default: ./downloaded_training_samples)
+
+### Configuration Files
+
+#### Book Cover Training Configs
+
+- **`ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml`**
+  - Main training configuration for book covers
+  - Portrait-oriented resolutions (768x1024)
+  - Book cover-specific sample prompts
+  - Optimized training parameters
+
+- **`ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers_resume.yaml`**
+  - Resume training configuration
+  - Automatically resumes from latest checkpoint
+  - Same settings as main config
+
+### Complete Workflow Example
+
+```bash
+# 1. Prepare dataset
+python prepare_book_cover_dataset.py \
+    --input ./datasets/uchida_book_dataset/images \
+    --output ./datasets/prepared_book_covers \
+    --metadata ./datasets/uchida_book_dataset/metadata.json \
+    --min-size 512
+
+# 2. Upload to Modal
+modal run upload_dataset_to_modal.py \
+    --local-path ./datasets/prepared_book_covers \
+    --remote-path book_covers
+
+# 3. Train LoRA
+modal run modal_train_deploy.py \
+    ai-toolkit-z_image_turbo/config/examples/modal/modal_train_lora_book_covers.yaml
+
+# 4. Download LoRA (optional)
+cd book_cover_cli
+python download_lora.py
+
+# 5. Generate covers
+python book_cover_generator.py --interactive
+```
+
+For more details, see:
+- **[Book Cover Training Quick Start](BOOK_COVER_TRAINING_QUICKSTART.md)**
+- **[Book Cover Dataset Preparation](BOOK_COVER_DATASET_PREP.md)**
+- **[Book Cover Generator CLI](book_cover_cli/README.md)**
 
