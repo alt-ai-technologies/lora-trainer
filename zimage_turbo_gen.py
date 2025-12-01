@@ -10,8 +10,10 @@ app = modal.App("zimage-turbo")
 
 hf_secret = modal.Secret.from_dict({"HF_TOKEN": os.environ.get("HF_TOKEN", "")})
 model_cache = modal.Volume.from_name("model-cache", create_if_missing=True)
+training_output = modal.Volume.from_name("training-output", create_if_missing=True)
 
 CACHE_DIR = "/model-cache"
+LORA_DIR = "/training-output"
 MODEL_ID = "Tongyi-MAI/Z-Image-Turbo"
 
 image = (
@@ -46,7 +48,7 @@ with image.imports():
     image=image,
     timeout=300,
     secrets=[hf_secret],
-    volumes={CACHE_DIR: model_cache},
+    volumes={CACHE_DIR: model_cache, LORA_DIR: training_output},
 )
 class ImageGenerator:
     @modal.enter()
@@ -73,24 +75,38 @@ class ImageGenerator:
         safe: bool = False,
         nsfw_threshold: float = 0.9,
     ) -> dict:
-        from huggingface_hub import hf_hub_download, list_repo_files
-
         lora_loaded = False
         if lora_id:
-            if not lora_weight_name:
-                # Auto-detect safetensors file if there's only one
-                files = list_repo_files(lora_id, token=os.environ.get("HF_TOKEN"))
-                safetensors_files = [f for f in files if f.endswith(".safetensors")]
-                if len(safetensors_files) == 0:
-                    raise ValueError(f"No .safetensors files found in {lora_id}")
-                elif len(safetensors_files) == 1:
-                    lora_weight_name = safetensors_files[0]
+            lora_path = None
+
+            # Check if it's a local name (no /) - look in training-output volume
+            if "/" not in lora_id:
+                local_path = f"{LORA_DIR}/{lora_id}.safetensors"
+                if os.path.exists(local_path):
+                    lora_path = local_path
+                    print(f"Loading LoRA from volume: {local_path}")
                 else:
                     raise ValueError(
-                        f"Multiple .safetensors files in {lora_id}: {safetensors_files}. "
-                        "Use --lora-weight-name to specify which one."
+                        f"LoRA '{lora_id}' not found in training-output volume. "
+                        f"Expected: {local_path}"
                     )
-            try:
+            else:
+                # It's a HuggingFace repo ID
+                from huggingface_hub import hf_hub_download, list_repo_files
+
+                if not lora_weight_name:
+                    # Auto-detect safetensors file if there's only one
+                    files = list_repo_files(lora_id, token=os.environ.get("HF_TOKEN"))
+                    safetensors_files = [f for f in files if f.endswith(".safetensors")]
+                    if len(safetensors_files) == 0:
+                        raise ValueError(f"No .safetensors files found in {lora_id}")
+                    elif len(safetensors_files) == 1:
+                        lora_weight_name = safetensors_files[0]
+                    else:
+                        raise ValueError(
+                            f"Multiple .safetensors files in {lora_id}: {safetensors_files}. "
+                            "Use --lora-weight-name to specify which one."
+                        )
                 lora_path = hf_hub_download(
                     repo_id=lora_id,
                     filename=lora_weight_name,
@@ -98,6 +114,8 @@ class ImageGenerator:
                     token=os.environ.get("HF_TOKEN"),
                 )
                 model_cache.commit()
+
+            try:
                 self.model.load_lora(lora_path, scale=lora_scale)
                 lora_loaded = True
             except Exception:
@@ -167,6 +185,12 @@ def main(
         print("Image blocked: NSFW content detected")
         return
 
-    output_path = get_output_path(prompt, output, prefix="zimage")
+    # Include lora name and scale in output filename
+    if lora:
+        prefix = f"{lora}_s{lora_scale}"
+    else:
+        prefix = "zimage_nolora"
+
+    output_path = get_output_path(prompt, output, prefix=prefix)
     output_path.write_bytes(result["image_bytes"])
     print(f"Saved to {output_path}")
